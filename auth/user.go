@@ -23,26 +23,10 @@ type User struct {
 	Vorname       string    `json:"vorname"`
 	Nachname      string    `json:"nachname"`
 	Password      string    `json:"-"`
-	ClearPassword string    `json:"password"` //Only used to receive the cleartext password from the client
+	ClearPassword string    `json:"password" gorm:"-"` //Only used to receive the cleartext password from the client
 	Email         string    `json:"email"`
 	CreatedAt     time.Time `gorm:"created" json:"created_at"`
 	UpdatedAt     time.Time `gorm:"updated" json:"updated_at"`
-}
-
-func (u *User) HasUUID() bool {
-	if u.UUID != uuid.Nil {
-		return true
-	}
-	return false
-}
-
-func (u *User) GetUUID() uuid.UUID {
-	return u.UUID
-}
-
-func (u *User) SetUUID(uu uuid.UUID) error {
-	u.UUID = uu
-	return nil
 }
 
 func NewUser(username, email, password string) (u *User) {

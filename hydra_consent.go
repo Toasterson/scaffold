@@ -15,9 +15,9 @@ import (
 	"github.com/toasterson/scaffold/template"
 )
 
-var client hydra.SDK
-
-var sessionStore *sessions.CookieStore
+var (
+	client hydra.SDK
+)
 
 const state = "demostate"
 
