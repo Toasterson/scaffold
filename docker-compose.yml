@@ -1,0 +1,30 @@
+version: '3'
+services:
+  db:
+    image: "postgres:10.3-alpine"
+    networks:
+      - db_nw
+    environment:
+      POSTGRES_PASSWORD: sample
+      POSTGRES_USER: sample
+      POSTGRES_DB: sample
+  goapp:
+    build: .
+    environment:
+      #Use viper.AutoEnv() to grab the environment variables
+      DBDIALECT: postgres
+      DBHOST: db
+      DBPORT: 5432
+      DATABASE: sample
+      DBUSER: sample
+      DBPASS: sample
+    volumes:
+      - .:/workspace
+    working_dir: "/workspace"
+    networks:
+      - db_nw
+    ports:
+      - "3000:3000"
+networks:
+  db_nw:
+    driver: bridge
