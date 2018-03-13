@@ -12,7 +12,6 @@ import (
 )
 
 type LoginManager struct {
-	sessions   map[string]jwt.Token
 	db         *gorm.DB
 	signingKey string
 }
@@ -28,10 +27,10 @@ func NewLoginManager(signingKey string, db *gorm.DB) *LoginManager {
 			signingKey = keyUUID.String()
 		}
 	}
+	db.AutoMigrate(&User{}, &Session{})
 	return &LoginManager{
 		db:         db,
 		signingKey: signingKey,
-		sessions:   make(map[string]jwt.Token),
 	}
 }
 
@@ -72,7 +71,8 @@ func (manager *LoginManager) Login(c echo.Context) error {
 					Inner:   err,
 				}
 			}
-			manager.sessions[tokID.String()] = *token
+			sess := NewSession(tokID, encoded)
+			manager.db.Create(&sess)
 			return c.JSON(http.StatusOK, map[string]string{
 				"token_type": "Bearer",
 				"token":      encoded,
@@ -94,13 +94,15 @@ func (manager *LoginManager) Logout(c echo.Context) error {
 				Message: "cannot retrieve aud claim",
 			}
 		}
-		if _, ok := manager.sessions[aud]; ok {
-			delete(manager.sessions, aud)
+		session := Session{}
+		manager.db.First(&session, &Session{UUID: uuid.FromStringOrNil(aud)})
+		if session.UUID.String() == aud {
+			manager.db.Delete(&session)
 			return c.JSON(http.StatusOK, nil)
 		}
 		return &echo.HTTPError{
 			Code:    http.StatusInternalServerError,
-			Message: "could not find session for Audience: Somebody is tampering with his token",
+			Message: "could not find session for Audience: Token is invalid or DB has been purged.",
 		}
 	} else {
 		return &echo.HTTPError{

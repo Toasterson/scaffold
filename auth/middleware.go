@@ -9,6 +9,7 @@ import (
 	"github.com/dgrijalva/jwt-go"
 	"github.com/labstack/echo"
 	"github.com/labstack/echo/middleware"
+	"github.com/satori/go.uuid"
 )
 
 type (
@@ -154,11 +155,12 @@ func (manager *LoginManager) JWTWithConfig(config JWTConfig) echo.MiddlewareFunc
 			if err == nil && token.Valid {
 				// Store user information from token into context.
 				if claims, ok := token.Claims.(jwt.MapClaims); ok {
-					for aud := range manager.sessions {
-						if claims.VerifyAudience(aud, true) {
-							c.Set(config.ContextKey, token)
-							return next(c)
-						}
+					aud := claims["aud"].(string)
+					session := &Session{}
+					manager.db.First(&session, &Session{UUID: uuid.FromStringOrNil(aud)})
+					if session.UUID.String() == aud {
+						c.Set(config.ContextKey, token)
+						return next(c)
 					}
 				}
 			}
