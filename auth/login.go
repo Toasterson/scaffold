@@ -21,11 +21,7 @@ func NewLoginManager(signingKey string, db *gorm.DB) *LoginManager {
 		signingKey = viper.GetString("signingKey")
 	}
 	if signingKey == "" {
-		if keyUUID, err := uuid.NewV4(); err != nil {
-			panic(err)
-		} else {
-			signingKey = keyUUID.String()
-		}
+		signingKey = uuid.NewV4().String()
 	}
 	db.AutoMigrate(&User{}, &Session{})
 	return &LoginManager{
@@ -47,14 +43,7 @@ func (manager *LoginManager) Login(c echo.Context) error {
 	manager.db.First(&dbUser, &User{Username: u.Username})
 	if u.Username == dbUser.Username {
 		if err := ComparePassword(dbUser.Password, u.ClearPassword); err == nil {
-			tokID, err := uuid.NewV4()
-			if err != nil {
-				return &echo.HTTPError{
-					Code:    http.StatusInternalServerError,
-					Message: "Error could not generate UUID for token",
-					Inner:   err,
-				}
-			}
+			tokID := uuid.NewV4()
 			token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 				"aud":       tokID.String(),
 				"exp":       time.Now().Add(time.Hour * 72).Unix(),
@@ -95,8 +84,8 @@ func (manager *LoginManager) Logout(c echo.Context) error {
 			}
 		}
 		session := Session{}
-		manager.db.First(&session, &Session{UUID: uuid.FromStringOrNil(aud)})
-		if session.UUID.String() == aud {
+		manager.db.First(&session, &Session{ID: uuid.FromStringOrNil(aud)})
+		if session.ID.String() == aud {
 			manager.db.Delete(&session)
 			return c.JSON(http.StatusOK, nil)
 		}

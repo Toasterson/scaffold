@@ -18,7 +18,7 @@ func ComparePassword(hash, password string) error {
 }
 
 type User struct {
-	UUID          uuid.UUID `json:"uuid" gorm:"'uuid' pk"`
+	ID          uuid.UUID `json:"uuid" gorm:"primary_key"`
 	Username      string    `json:"username" gorm:"unique"`
 	Vorname       string    `json:"vorname"`
 	Nachname      string    `json:"nachname"`
@@ -34,7 +34,7 @@ func NewUser(username, email, password string) (u *User) {
 	u.Username = username
 	u.Email = email
 	u.Password = CryptPass(password)
-	u.UUID, _ = uuid.NewV4()
+	u.ID = uuid.NewV4()
 	return
 }
 

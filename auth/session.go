@@ -5,13 +5,13 @@ import (
 )
 
 type Session struct {
-	UUID  uuid.UUID `gorm:"'uuid' pk"`
+	ID  uuid.UUID `gorm:"primary_key"`
 	Token string    `gorm:"unique"`
 }
 
 func NewSession(ID uuid.UUID, encodedToken string) *Session {
 	return &Session{
-		UUID:  ID,
+		ID:  ID,
 		Token: encodedToken,
 	}
 }

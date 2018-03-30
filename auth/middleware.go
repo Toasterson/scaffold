@@ -157,8 +157,8 @@ func (manager *LoginManager) JWTWithConfig(config JWTConfig) echo.MiddlewareFunc
 				if claims, ok := token.Claims.(jwt.MapClaims); ok {
 					aud := claims["aud"].(string)
 					session := &Session{}
-					manager.db.First(&session, &Session{UUID: uuid.FromStringOrNil(aud)})
-					if session.UUID.String() == aud {
+					manager.db.First(&session, &Session{ID: uuid.FromStringOrNil(aud)})
+					if session.ID.String() == aud {
 						c.Set(config.ContextKey, token)
 						return next(c)
 					}
